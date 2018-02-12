@@ -1,0 +1,225 @@
+<html>
+  <head>
+    <script defer src="https://use.fontawesome.com/releases/v5.0.6/js/all.js"></script>
+    <style>
+      body {
+        background-color: #000;
+        margin: 0;
+        overflow: hidden;
+        padding: 0;
+      }
+
+      #overlay {
+        align-content: center;
+        background-color: #000;
+        display: flex;
+        height: 100%;
+        justify-content: center;
+        left: 0px;
+        opacity: 1;
+        position: absolute;
+        top: 0px;
+        width: 100%;
+        z-index: 1000;
+      }
+
+      progress {
+        margin: auto;
+        width: 50%;
+      }
+
+      #content {
+        background-image: url('./assets/img/woodgrain.png');
+        background-size: cover;
+        border-left: 10px solid #4f2905;
+        border-right: 10px solid #4f2905;
+        height: 100%;
+        margin: 0 auto;
+        padding: 0;
+        width: 90%;
+      }
+
+      #tv-wrapper,
+      #controls {
+        display: flex;
+        justify-content: center;
+      }
+
+      #tv-wrapper {
+        padding: 50px 0px;
+        position: relative;
+      }
+
+      canvas#tv {
+        background-color: #000;
+        border: 7px solid #77400a;
+        border-radius: 75px;
+        box-shadow: inset 0px 0px 25px 10px rgba(0,0,0,0.75);
+        display: inline-block;
+        margin: 0 auto;
+        transition: background-color 0.5s;
+      }
+      canvas#tv.active {
+        background-image: url('./assets/img/static.gif');
+      }
+      canvas#tv.active.playing {
+        background-color: #00aa00;
+        background-image: none;
+      }
+
+      #mute {
+        color: #00FF00;
+        display: none;
+        font-family: "Lucida Console", Monaco, monospace;
+        font-size: 50px;
+        height: 50px;
+        position: absolute;
+        left: 60%;
+        text-align: right;
+        top: 100px;
+        z-index: 100;
+      }
+
+      #controls {
+        bottom: 25px;
+        left: 50%;
+        position: absolute;
+        transform: translateX(-50%);
+      }
+
+      #power,
+      #volume,
+      #load {
+        background-color: #EDD461;
+        border: 10px outset #B99C18;
+        border-radius: 50px;
+        box-shadow: #000 2.5px 5px 2.5px 2.5px;
+        font-size: 25px;
+        cursor: pointer;
+        display: inline-block;
+        height: 50px;
+        margin-left: 50px;
+        text-align: center;
+        width: 50px;
+      }
+
+      #power .button-wrapper,
+      #volume .button-wrapper {
+        border: 1px solid #000;
+        border-radius: 50px;
+        height: 50px;
+        width: 50px;
+      }
+
+      #power .svg-inline--fa,
+      #volume .svg-inline--fa {
+        height: 23px;
+        left: 1px;
+        position: relative;
+        top: 12px;
+        width: 23px;
+      }
+
+      #power {
+        margin-left: 0px;
+      }
+
+      #load {
+        box-shadow: #000 1px 2.5px 1px 1px;
+        height: 25px;
+        margin-left: 25px;
+        width: 25px;
+      }
+
+      #load .dot {
+        background-color: #ff0000;
+        border: 1px inset #000;
+        border-radius: 8px;
+        box-shadow: #000 1px 1px 1px 1px;
+        height: 8px;
+        margin: auto;
+        position: relative;
+        top: 7px;
+        width: 8px;
+      }
+
+      #load .dot.active {
+        background-color: #00ff00;
+      }
+
+      #drive {
+        background-color: #000;
+        border: 7px solid #77400a;
+        border-radius: 14px;
+        cursor: pointer;
+        height: 7px;
+        margin-left: 50px;
+        padding: 10px 0 0 0;
+        position: relative;
+        width: 300px;
+      }
+
+      #disk {
+        background-color: #999;
+        border-radius: 2px;
+        box-shadow: #000 -1px 0px 10px 2px;
+        height: 800px;
+        left: 10px;
+        overflow: hidden;
+        position: absolute;
+        top: 300px;
+        transform: rotateY(180deg) rotateX(180deg);
+        transition: top 0.5s, height 1s;
+        width: 280px;
+      }
+
+      #disk.inserted {
+        height: 36px;
+        top: 0px;
+      }
+
+      #label {
+        background-color: #eee;
+        border: 1px solid #000;
+        font-family: 'Nanum Pen Script', cursive;
+        font-size: 40px;
+        margin: auto;
+        padding: 0px 15px;
+        position: relative;
+        text-align: left;
+        text-transform: uppercase;
+        top: 10px;
+        width: 230px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="overlay"></div>
+    <div id="content">
+      <div id="tv-wrapper">
+        <div id="mute">MUTE</div>
+        <canvas id="tv"></canvas>
+      </div>
+
+      <div id="controls">
+        <div id="power">
+          <div class="button-wrapper"><i class="fas fa-plug"></i></div>
+        </div>
+
+        <div id="volume">
+          <div class="button-wrapper"><i class="fas fa-volume-up"></i></div>
+        </div>
+
+        <div id="drive">
+          <div id="disk">
+            <div id="label">Race Invaders</div>
+          </div>
+        </div>
+
+        <div id="load"><div class="dot"></div></div>
+      </div>
+    </div>
+
+    <script src="build/app.bundle.js"></script>
+  </body>
+</html>
