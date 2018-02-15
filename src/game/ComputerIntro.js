@@ -292,10 +292,10 @@ export class ComputerIntro {
             break;
 
           case ' ':
-            if (sound && self.pictureOn && self.volumeOn) {
+            if (sound && self.pictureOn) {
               switch (sound) {
                 case 'cpuType':
-                  self.assets.get(sound).play();
+                  if (self.volumeOn) self.assets.get(sound).play();
                   break;
                 case 'keyboard':
                   self.assets.get('spacebar').play();
@@ -306,10 +306,10 @@ export class ComputerIntro {
             break;
 
           default:
-            if (sound && self.pictureOn && self.volumeOn) {
+            if (sound && self.pictureOn) {
               switch (sound) {
                 case 'cpuType':
-                  self.assets.get(sound).play();
+                  if (self.volumeOn) self.assets.get(sound).play();
                   break;
                 case 'keyboard':
                   self.assets.get(sound).rate(randomInt(75, 100) / 100).play();
