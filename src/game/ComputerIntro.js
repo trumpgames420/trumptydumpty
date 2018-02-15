@@ -150,19 +150,44 @@ export class ComputerIntro {
       this.assets.get('hiss').pause();
     }
 
-    // Show/hide MUTE.
-    (this.pictureOn && !this.volumeOn) ? this.$mute.show() : this.$mute.hide();
+    // Power button is killswitch.
+    if (!this.pictureOn) {
+      this.loadOn = false;
+      this.cancelIntroText();
+      this.$tv.removeClass('active');
+    }
+    else {
+      this.$tv.addClass('active');
+    }
 
     // Start/stop static noise.
     if (this.volumeOn && this.pictureOn) {
-      if (this.$tv.hasClass('playing')) {
+      if (this.loadOn) {
         stopHiss();
       }
       else {
         playHiss();
       }
-    } else {
+    }
+    else {
       stopHiss();
+    }
+
+    // Show/hide MUTE.
+    if (this.pictureOn && !this.volumeOn) {
+      this.$mute.show();
+    } else {
+      this.$mute.hide();
+    }
+
+    // Turn load light on/off.
+    if (this.loadOn) {
+      this.$tv.addClass('playing');
+      this.$loadButton.find('.dot').addClass('active');
+    }
+    else {
+      this.$tv.removeClass('playing');
+      this.$loadButton.find('.dot').removeClass('active');
     }
 
     return this;
@@ -175,9 +200,6 @@ export class ComputerIntro {
   powerKnobClick() {
     this.assets.get('knob').play();
     this.pictureOn = !this.pictureOn;
-    this.$tv.toggleClass('active');
-
-    if (!this.pictureOn && this.loadOn) this.loadButtonClick();
     return this.refresh();
   }
 
@@ -206,18 +228,17 @@ export class ComputerIntro {
    * @returns {C64Intro}
    */
   loadButtonClick() {
-    if (this.diskIn) {
+    if (this.diskIn && this.pictureOn) {
       this.loadOn = !this.loadOn;
-      this.$tv.toggleClass('playing');
+
       if (this.loadOn) {
-        this.$loadButton.find('.dot').addClass('active');
         this.assets.get('poweron').play();
         this.startIntroText();
       }
       else {
-        this.$loadButton.find('.dot').removeClass('active');
         this.cancelIntroText();
       }
+
       return this.refresh();
     }
   }
