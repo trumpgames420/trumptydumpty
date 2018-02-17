@@ -36,6 +36,7 @@ export class AssetLoader {
     assets,
     autoLoad = true,
     finished = ()=>{},
+    error = () => {},
   }) {
     /**
      * Flag to automatically process assets as they enter the queue.
@@ -45,9 +46,15 @@ export class AssetLoader {
 
     /**
      * The callback to fire when loading finishes.
-     * @var {function}
+     * @var function
      */
     this.finished = finished;
+
+    /**
+     * The callback to fire when loading errors/stalls.
+     * @var function
+     */
+    this.errored = error;
 
     /**
      * The total number of assets added to the queue.
@@ -85,7 +92,6 @@ export class AssetLoader {
      */
     this.failedAssets = {};
 
-
     // Add new assets and update progress bar.
     this.addAssets(assets);
     this.refresh();
@@ -96,6 +102,8 @@ export class AssetLoader {
    * @returns {AssetLoader}
    */
   refresh() {
+    if (this.loadStatus == STATUS.FINISHED) return this;
+
     var value = objSize(this.loadedAssets);
     this.progressBar.setAttribute('value', value);
     this.progressBar.setAttribute('max', this.totalAssets);
@@ -110,6 +118,7 @@ export class AssetLoader {
       // Dispatch error event if any assets error out.
       this.loadStatus = STATUS.ERROR;
       this.progressBar.dispatchEvent(EVENT.ERROR);
+      this.errored();
     }
 
     return this;

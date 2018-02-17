@@ -1,4 +1,4 @@
-import { Asset, EVENT } from './Asset';
+import { Asset, EVENT, STATUS } from './Asset';
 
 /**
  * A base class for image, sound, and video assets.
@@ -13,6 +13,38 @@ export class ImageAsset extends Asset {
   constructor(src) {
     super(src);
     this.element = document.createElement('img');
+  }
+
+  /**
+   * Initialize the asset.
+   * @param {function} callback - called when loaded
+   * @returns {ImageAsset}
+   */
+  initialize(callback = ()=>{}) {
+    const self = this;
+
+    const finished = () => {
+      self.loadStatus = STATUS.LOADED;
+      self.element.dispatchEvent(EVENT.FINISHED);
+      callback();
+    }
+
+    // Short-circuit if <img> is in cache (no load event).
+    if (this.element.complete) {
+      finished();
+      return this;
+    }
+
+    this.element.addEventListener('load', function() {
+      finished();
+    });
+
+    this.element.addEventListener('error', function(e) {
+      self.loadStatus = STATUS.ERROR;
+      self.element.dispatchEvent(EVENT.ERROR);
+    });
+
+    return this;
   }
 
   /**
