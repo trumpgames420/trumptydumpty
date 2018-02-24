@@ -23,28 +23,30 @@ export class ImageAsset extends Asset {
   initialize(callback = ()=>{}) {
     const self = this;
 
-    const finished = () => {
+    const loaded = () => {
       self.loadStatus = STATUS.LOADED;
       self.element.dispatchEvent(EVENT.FINISHED);
       callback();
     }
 
-    // Short-circuit if <img> is in cache (no load event).
-    if (this.element.complete) {
-      finished();
-      return this;
-    }
-
-    this.element.addEventListener('load', function() {
-      finished();
-    });
-
-    this.element.addEventListener('error', function(e) {
+    const errored = () => {
       self.loadStatus = STATUS.ERROR;
       self.element.dispatchEvent(EVENT.ERROR);
-    });
+    }
 
-    return this;
+    this.element.addEventListener('load', loaded);
+    this.element.addEventListener('error', errored);
+    this.element.src = this.src;
+
+    // Short-circuit if <img> is in cache (no load event).
+    setTimeout(() => {
+      if (self.element.complete || self.element.readyState === 4) {
+        self.element.removeEventListener('load', loaded, true);
+        self.element.removeEventListener('error', errored, true);
+        loaded();
+        return self;
+      }
+    }, 100);
   }
 
   /**
@@ -71,7 +73,6 @@ export class ImageAsset extends Asset {
     scaleHeight = null,
   }) {
 
-    // console.log(x, y, sliceX, sliceY, sliceWidth);
     context.drawImage(
       /* source  */ this.element,
       /* sliceX  */ sliceX,

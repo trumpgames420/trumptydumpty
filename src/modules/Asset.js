@@ -70,11 +70,13 @@ export class Asset {
       self.element.dispatchEvent(EVENT.ERROR);
     });
 
+    this.element.src = this.src;
+
     return this;
   }
 
   /**
-   * Retrieve the asset.
+   * Retrieve a usable asset.
    * @returns {HTMLElement}
    */
   retrieve() {

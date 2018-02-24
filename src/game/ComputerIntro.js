@@ -1,19 +1,26 @@
 import $ from 'jquery';
 
-import { randomInt } from '../lib/utils';
+import { canvasClear, randomInt } from '../lib/utils';
 import { AudioAsset } from '../modules/AudioAsset';
 import { AssetLoader } from '../modules/AssetLoader';
 
 /**
- * A cheeseball, faux-Commodore-64-esque intro for Race Invaders.
+ * A cheeseball, faux-Commodore-64-esque intro for Trumpty Dumpty.
  */
 export class ComputerIntro {
 
   /**
    * Initialize the demo.
+   * @param {function} resolve - the function to call when intro is finished
    */
-  constructor() {
+  constructor(finished = ()=>{}) {
     var self = this;
+
+    /**
+     * The function to call when the intro finishes.
+     * @var function
+     */
+    this.finished = finished;
 
     /**
      * On/off state for "Power" knob.
@@ -28,7 +35,7 @@ export class ComputerIntro {
     this.volumeOn = true;
 
     /**
-     * In/out state for "Race Invaders" diskette.
+     * In/out state for "Trumpty Dumpty" diskette.
      * @var boolean
      */
     this.diskIn = false;
@@ -139,7 +146,7 @@ export class ComputerIntro {
 
   /**
    * Refresh the computer state after a knob/button has been clicked.
-   * @return {C64Intro}
+   * @return {ComputerIntro}
    */
   refresh() {
     var playHiss = () => {
@@ -195,7 +202,7 @@ export class ComputerIntro {
 
   /**
    * Handle click events to the power button.
-   * @returns {C64Intro}
+   * @returns {ComputerIntro}
    */
   powerKnobClick() {
     this.assets.get('knob').play();
@@ -206,7 +213,7 @@ export class ComputerIntro {
   /**
    * Handle click events to the power button.
    * @param {Event} e
-   * @returns {C64Intro}
+   * @returns {ComputerIntro}
    */
   volumeKnobClick(e) {
     this.assets.get('knob').play();
@@ -216,7 +223,7 @@ export class ComputerIntro {
 
   /**
    * Handle click events to the power button.
-   * @returns {C64Intro}
+   * @returns {ComputerIntro}
    */
   diskDriveClick() {
     this.diskIn = true;
@@ -225,7 +232,7 @@ export class ComputerIntro {
 
   /**
    * Handle click events to the load button.
-   * @returns {C64Intro}
+   * @returns {ComputerIntro}
    */
   loadButtonClick() {
     if (this.diskIn && this.pictureOn) {
@@ -253,6 +260,8 @@ export class ComputerIntro {
    */
   typeText(startX, startY, text, speed = 75, sound = 'cpuType') {
     const self = this;
+    const PAUSE_SPEED = 400;
+
     var x = startX;
     var y = startY;
     var index = 0;
@@ -268,7 +277,7 @@ export class ComputerIntro {
         clearInterval(self.timer);
       }
       const doneTyping = () => {
-        clearTimeout(self.timer);
+        clearInterval(self.timer);
         resolve();
       }
       const tick = () => {
@@ -283,7 +292,7 @@ export class ComputerIntro {
         switch (char) {
           case '~':
             pauseTyping();
-            setTimeout(() => { startTyping(); }, 1000);
+            setTimeout(() => { startTyping(); }, PAUSE_SPEED);
             break;
 
           case '|':
@@ -332,14 +341,17 @@ export class ComputerIntro {
 
   /**
    * Begin computer intro text.
-   * @returns {C64Intro}
    */
   startIntroText() {
-    this.typeText(50, 50, '**** COLONEL 64 BASIC V2 ****|64K RAM SYSTEM 24601 BASIC BYTES FREE|READY.~~').then(() => {
-      this.typeText(50, 95, 'LOAD "RACE INVADERS",8,1~', 115, 'keyboard').then(() => {
-        this.typeText(50, 125, 'SEARCHING FOR RACE INVADERS~|READY.~').then(() => {
-          this.typeText(50, 155, 'RUN~', 115, 'keyboard').then(() => {
-            this.cancelIntroText();
+    var self = this;
+    const CPU_SPEED = 75;
+    const HUMAN_SPEED = 50;
+
+    self.typeText(50, 50, '**** COLONEL 64 BASIC V2 ****|64K RAM SYSTEM 24601 BASIC BYTES FREE|READY.~~', CPU_SPEED).then(() => {
+      self.typeText(50, 95, 'LOAD "TRUMPTY DUMPTY",8,1~', HUMAN_SPEED, 'keyboard').then(() => {
+        self.typeText(50, 125, 'SEARCHING FOR TRUMPTY DUMPTY~|READY.~', CPU_SPEED).then(() => {
+          self.typeText(50, 155, 'RUN~~', HUMAN_SPEED, 'keyboard').then(() => {
+            self.finishIntro();
           });
         })
       });
@@ -348,11 +360,19 @@ export class ComputerIntro {
 
   /**
    * End computer intro text and clean up events.
-   * @returns {C64Intro}
    */
   cancelIntroText() {
     clearInterval(this.timer);
     this.typingCancelled = true;
-    this.screen.clearRect(0, 0, this.$tv[0].width, this.$tv[0].height);
+    canvasClear(this.screen);
+  }
+
+  /**
+   * User made it to the end of the intro.
+   */
+  finishIntro() {
+    this.cancelIntroText();
+    this.$tv.addClass('game');
+    this.finished();
   }
 }

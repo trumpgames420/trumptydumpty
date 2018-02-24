@@ -40,55 +40,55 @@ export class AssetLoader {
   }) {
     /**
      * Flag to automatically process assets as they enter the queue.
-     * @var boolean
+     * @var {boolean}
      */
     this.autoLoad = autoLoad;
 
     /**
      * The callback to fire when loading finishes.
-     * @var function
+     * @var {function}
      */
     this.finished = finished;
 
     /**
      * The callback to fire when loading errors/stalls.
-     * @var function
+     * @var {function}
      */
     this.errored = error;
 
     /**
      * The total number of assets added to the queue.
-     * @var int
+     * @var {int}
      */
     this.totalAssets = 0;
 
     /**
      * An HTML5 progress bar element to display total completion.
-     * @public
+     * @var {HTMLProgressElement}
      */
     this.progressBar = document.createElement('progress');
 
     /**
      * The current status for the asset loader.
-     * @public
+     * @var {int}
      */
     this.loadStatus = STATUS.FINISHED;
 
     /**
      * An array of assets that haven't finished loading.
-     * @public
+     * @var {object}
      */
     this.unloadedAssets = {};
 
     /**
      * An array of assets that have finished loading.
-     * @public
+     * @var {object}
      */
     this.loadedAssets = {};
 
     /**
      * An array of assets that have errored or stalled.
-     * @public
+     * @var {object}
      */
     this.failedAssets = {};
 
@@ -112,13 +112,13 @@ export class AssetLoader {
       // Dispatch finished event if queue size = 0.
       this.loadStatus = STATUS.FINISHED;
       this.progressBar.dispatchEvent(EVENT.FINISHED);
-      this.finished();
+      this.finished(this);
     }
     else if (this.unloadedAssets.length > 0) {
       // Dispatch error event if any assets error out.
       this.loadStatus = STATUS.ERROR;
       this.progressBar.dispatchEvent(EVENT.ERROR);
-      this.errored();
+      this.errored(this);
     }
 
     return this;

@@ -61,7 +61,7 @@ export class TileMap {
     this.tiles = tiles;
 
     if (tiles) {
-      for (var i = 0; i < tiles.length; i++) {
+      for (let i = 0; i < tiles.length; i++) {
         this.changeTileIndex(i, tiles[i]);
       }
     }
@@ -121,15 +121,25 @@ export class TileMap {
   /**
    * Render a tile map to a canvas.
    * @param {CanvasRenderingContext2D} context - a 2d canvas context
-   * @param {int} x - the x coordinate of the canvas to render the map
-   * @param {int} y - the y coordinate of the canvas to render the map
+   * @param {int|string} x - the x coordinate of the canvas to render the map
+   *   if string: 'center' will center the tilemap horizontally
+   * @param {int|string} y - the y coordinate of the canvas to render the map
+   *   if string: 'center' will center the tilemap vertically
    * @returns {TileMap}
    */
-  draw(context, x, y) {
+  draw(context, x = 0, y = 0) {
+    if (x == 'center') {
+      x = (context.canvas.width / 2) - (this.width * this.tileWidth / 2);
+    }
+    if (y == 'center') {
+      y = (context.canvas.height / 2) - (this.height * this.tileHeight / 2);
+    }
+
     // Render entire map.
-    for (var mapY = 0; mapY < this.height; mapY++) {
-      for (var mapX = 0; mapX < this.width; mapX++) {
-        tile = this.palette.tiles[this.getTile(mapX, mapY)];
+    for (let mapY = 0; mapY < this.height; mapY++) {
+      for (let mapX = 0; mapX < this.width; mapX++) {
+        var tile = this.palette.tiles[this.getTile(mapX, mapY)];
+        var sprite;
 
         // Use empty tile when invalid tile is encountered.
         tile = tile || this.palette.tiles[0];
@@ -142,7 +152,9 @@ export class TileMap {
             sprite.draw(
               context,
               x + (mapX * this.tileWidth),
-              y + (mapY * this.tileHeight)
+              y + (mapY * this.tileHeight),
+              this.tileWidth,
+              this.tileHeight,
             );
           }
         }

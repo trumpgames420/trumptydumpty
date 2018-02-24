@@ -15,8 +15,8 @@ export class TilePalette {
      * Note that index 0 is reserved for "no tile".
      * @var {array}
      */
-    this.tiles = tiles;
-    if (options.tiles) this.addTiles(options.tiles);
+    this.tiles = [[]];
+    if (tiles) this.addTiles(tiles);
   }
 
   /**
@@ -41,7 +41,7 @@ export class TilePalette {
    * @returns {TilePalette}
    */
   addTiles(newTiles) {
-    for (key in newTiles) {
+    for (let key in newTiles) {
       this.addTile(newTiles[key]);
     }
     return this;
@@ -49,7 +49,6 @@ export class TilePalette {
 
   /**
    * If a given tile has multiple animation frames, advance to the next one.
-   * @param {int} newTile - a new tile to replace this tile
    * @param {int} index (optional) - if index exists, replace, otherwise append
    * @returns {TileMap}
    */
@@ -61,13 +60,12 @@ export class TilePalette {
     return this;
   }
 
-
   /**
    * Advance all frames on all sprite animations.
    * @returns {TilePalette}
    */
   animateAllTiles() {
-    for (var i = 1; i < this.tiles.length; i++) {
+    for (let i = 1; i < this.tiles.length; i++) {
       this.animateTile(i);
     }
     return this;
@@ -79,7 +77,7 @@ export class TilePalette {
    * @param {int} index (optional) - if index exists, replace, otherwise append
    * @returns {TilePalette}
    */
-  changeTile(newTile, index) {
+  changeTile(index, newTile) {
     if (typeof index === 'number') {
       this.tiles[index] = newTile;
     }
