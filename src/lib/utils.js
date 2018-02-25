@@ -3,11 +3,17 @@ import { ImageAsset } from '../modules/ImageAsset';
 /**
  * Clear a canvas of all image data.
  * @param {CanvasRenderingContext2D} ctx - the 2d context of the canvas
+ * @param {function} callback - fires when canvas is cleared
  * @param {string} style - a stylized canvas wipe
  * @param {number} speed - number of seconds (approx) to complete wipe
  * @todo Add some fancy animated wipes.
  */
-export const canvasClear = (ctx, style = 'clear', speed = 1) => {
+export const canvasClear = (ctx, {
+  callback = ()=>{},
+  style = 'clear',
+  speed = 1,
+} = {}) => {
+
   var tick = ()=>{};
 
   switch (style) {
@@ -21,19 +27,53 @@ export const canvasClear = (ctx, style = 'clear', speed = 1) => {
         ctx.lineWidth = length + 2;
         ctx.lineTo(ctx.canvas.width, y);
         ctx.stroke();
-        y += length;
-
         let done = (y >= (ctx.canvas.height + length));
-        if (!done) window.requestAnimationFrame(tick);
+
+        if (done) {
+          callback();
+        } else {
+          y += length;
+          window.requestAnimationFrame(tick);
+        }
       }
       break;
 
     case 'clear':
       ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+      callback();
       break;
   }
 
   window.requestAnimationFrame(tick);
+}
+
+/**
+ * Fit a given canvas context to its parent container, maintaining aspect.
+ * @param {CanvasRenderingContext2D} ctx
+ */
+export const canvasFit = (ctx) => {
+  var origW = 640;
+  var origH = 400;
+  var parentW = ctx.canvas.parentNode.clientWidth;
+  var parentH = ctx.canvas.parentNode.clientHeight;
+  var aspect = origW / origH;
+
+  ctx.canvas.scaleFactor = parentH / origH;
+  ctx.canvas.height = origH * ctx.canvas.scaleFactor;
+  ctx.canvas.width = origH * ctx.canvas.scaleFactor * (origW / origH);
+
+  if (ctx.canvas.width > parentW * 0.90) {
+    ctx.canvas.scaleFactor = parentW * 0.90 / origW;
+    ctx.canvas.width = parentW * 0.90;
+    ctx.canvas.height = parentW * 0.90 * (origH / origW);
+  }
+
+  if (ctx.canvas.width < origW * 0.80 || ctx.canvas.height < origH * 0.80) {
+    ctx.canvas.style.display = 'none';
+  }
+  else {
+    ctx.canvas.style.display = 'block';
+  }
 }
 
 /**

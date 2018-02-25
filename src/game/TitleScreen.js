@@ -1,4 +1,4 @@
-import { canvasClear } from '../lib/utils';
+import { canvasClear, canvasFit } from '../lib/utils';
 import { AssetLoader } from '../modules/AssetLoader';
 import { Clickable } from '../modules/Clickable';
 import { ImageAsset } from '../modules/ImageAsset';
@@ -63,7 +63,6 @@ export class TitleScreen {
       assets: {
         brick: new ImageAsset('./assets/img/brick.gif'),
         trumphead: new ImageAsset('./assets/img/trumphead.gif'),
-        tweet: new ImageAsset('./assets/img/tweet.png'),
       },
       finished: (assets) => {
         self.initialize();
@@ -77,9 +76,15 @@ export class TitleScreen {
    */
   initialize() {
     const self = this;
+
     document.getElementById('overlay').style.display = 'none';
-    this.screen.width = 640;
-    this.screen.height = 480;
+    canvasFit(this.screen.getContext('2d'));
+
+    window.addEventListener('resize', () => {
+      canvasFit(self.screen.getContext('2d'));
+    });
+    // this.screen.width = 640;
+    // this.screen.height = 480;
 
     this.brickSprite = new Sprite({
       asset: this.assets.get('brick'),
@@ -112,12 +117,6 @@ export class TitleScreen {
         [this.brickSprite, 'brick'],
         [this.brickSprite, 'brickShadow'],
         [this.brickSprite, 'darkBrick'],
-        // [this.brickSprite, 'sand'],
-        // [this.brickSprite, 'bg1'],
-        // [this.brickSprite, 'bg2'],
-        // [this.brickSprite, 'bg3'],
-        // [this.brickSprite, 'bg4'],
-        // [this.brickSprite, 'grass'],
       ]),
       tiles: TITLE_BITMAP,
     });

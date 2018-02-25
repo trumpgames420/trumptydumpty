@@ -6,7 +6,7 @@
     "webpack": "^3.10.0"
   },
   "scripts": {
-    "dev": "webpack -p"
+    "dev": "webpack -pd"
   },
   "dependencies": {
     "howler": "^2.0.9",

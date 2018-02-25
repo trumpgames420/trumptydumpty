@@ -1,7 +1,9 @@
+import { Object2D } from './Object2D';
+
 /**
  * A class for any clickable item in a canvas.
  */
-export class Clickable {
+export class Clickable extends Object2D {
 
   /**
    * Build a new clickable canvas area.
@@ -24,7 +26,9 @@ export class Clickable {
     y = 0,
     w = 0,
     h = 0
-  }) {
+  } = {}) {
+
+    super({ x: x, y: y, w: w, h: h });
 
     /**
      * The canvas context to which all events will be bound.

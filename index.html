@@ -46,10 +46,13 @@
       }
 
       #tv-wrapper {
-        padding: 50px 0px;
+        height: calc(100% - 200px);
+        margin: auto;
+        padding: 0;
         position: relative;
         top: 50%;
-        transform: translateY(-50%);
+        transform: translateY(-55%);
+        width: 90%;
       }
 
       canvas#tv {
@@ -58,7 +61,7 @@
         border-radius: 75px;
         box-shadow: inset 0px 0px 25px 10px rgba(0,0,0,0.75);
         display: inline-block;
-        margin: 0 auto;
+        margin: auto;
         transition: background-color 0.5s;
       }
       canvas#tv.active {

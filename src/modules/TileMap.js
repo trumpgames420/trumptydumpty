@@ -128,18 +128,20 @@ export class TileMap {
    * @returns {TileMap}
    */
   draw(context, x = 0, y = 0) {
+    var scaleFactor = context.canvas.scaleFactor || 1;
+
     if (x == 'center') {
-      x = (context.canvas.width / 2) - (this.width * this.tileWidth / 2);
+      x = (context.canvas.width / 2) - (this.width * this.tileWidth / 2) * scaleFactor;
     }
     if (y == 'center') {
-      y = (context.canvas.height / 2) - (this.height * this.tileHeight / 2);
+      y = (context.canvas.height / 2) - (this.height * this.tileHeight / 2) * scaleFactor;
     }
 
     // Render entire map.
     for (let mapY = 0; mapY < this.height; mapY++) {
       for (let mapX = 0; mapX < this.width; mapX++) {
         var tile = this.palette.tiles[this.getTile(mapX, mapY)];
-        var sprite;
+        var sprite, scaleFactor;
 
         // Use empty tile when invalid tile is encountered.
         tile = tile || this.palette.tiles[0];
@@ -151,10 +153,10 @@ export class TileMap {
           if (sprite && sprite.animation) {
             sprite.draw(
               context,
-              x + (mapX * this.tileWidth),
-              y + (mapY * this.tileHeight),
-              this.tileWidth,
-              this.tileHeight,
+              x + (mapX * this.tileWidth * scaleFactor),
+              y + (mapY * this.tileHeight * scaleFactor),
+              this.tileWidth * scaleFactor,
+              this.tileHeight * scaleFactor,
             );
           }
         }

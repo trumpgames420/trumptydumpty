@@ -13,7 +13,11 @@ export const KEYS = {
   UP: 38,
   DOWN: 40,
   LEFT: 37,
-  RIGHT: 39
+  RIGHT: 39,
+  W: 87,
+  S: 83,
+  A: 65,
+  D: 68
 };
 
 /**
@@ -27,7 +31,10 @@ export class Controller {
    * @param {object} events - key:value pairs of keycodes and callbacks
    * @returns {Controller}
    */
-  constructor({ on = true, events = {} } = {}) {
+  constructor({
+    on = true,
+    events = {},
+  } = {}) {
     /**
      * Whether or not this controller is trapping events.
      * @var {boolean}
@@ -78,10 +85,11 @@ export class Controller {
    */
   listen() {
     const self = this;
-    document.addEventListener('keydown', function(e) {
+
+    document.addEventListener('keydown', (e) => {
       self.keyDown(e);
     });
-    document.addEventListener('keyup', function(e) {
+    document.addEventListener('keyup', (e) => {
       self.keyUp(e);
     });
 
@@ -90,7 +98,7 @@ export class Controller {
 
   /**
    * Register a new game event with keydown/keyup of a given keyCode.
-   * @param {int} keyCode - from onkeydown event
+   * @param {int} key - from onkeydown event
    * @param {function} press - button press callback
    * @param {function} release - button release callback
    * @returns {Controller}

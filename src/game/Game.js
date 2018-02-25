@@ -1,7 +1,13 @@
 import { canvasClear } from '../lib/utils';
-import { Asset } from '../modules/Asset';
 import { AssetLoader } from '../modules/AssetLoader';
+import { AudioAsset } from '../modules/AudioAsset';
 import { Controller, KEYS } from '../modules/Controller';
+import { ImageAsset } from '../modules/ImageAsset';
+import { Player } from '../modules/Player';
+import { Projectile } from '../modules/Projectile';
+import { TileMap } from '../modules/TileMap';
+import { TilePalette } from '../modules/TilePalette';
+import { Sprite } from '../modules/Sprite';
 
 /**
  * Possible game state values.
@@ -11,7 +17,21 @@ export const STATE = {
   OFF: 0,
   ON: 1,
   PAUSED: 2,
-}
+};
+
+/**
+ * A tilemap for THE WALL.
+ * @var {array}
+ */
+export const WALL_BITMAP = [
+  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+  2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
+  2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
+];
 
 /**
  * Game engine class.
@@ -23,6 +43,7 @@ export class Game {
    * @param {string} screen - the DOM id of the screen Canvas object
    */
   constructor() {
+    const self = this;
 
     /**
      * The HTML canvas object to which final images will be rendered.
@@ -37,14 +58,44 @@ export class Game {
     this.state = STATE.OFF;
 
     /**
-     * An asset loader for general game assets.
+     * The main game loop.
+     * @var {function}
+     */
+    this.gameLoop = ()=>{};
+
+    /**
+     * An array of player projectiles (tweets).
+     * @var {array}
+     */
+    this.playerBullets = [];
+
+    /**
+     * An array of enemy projectiles.
+     * @var {array}
+     */
+    this.enemyBullets = [];
+
+    /**
+     * An asset loader for game image assets.
      * @var {AssetLoader}
      */
-    this.assets = new AssetLoader({
-      autoLoad: true,
-      finished: () => {
-        // ...
-      }
+    this.images = new AssetLoader({
+      autoLoad: false,
+      assets: {
+        brick: new ImageAsset('./assets/img/brick.gif'),
+        trumphead: new ImageAsset('./assets/img/trumphead.gif'),
+      },
+    });
+
+    /**
+     * An asset loader for game image assets.
+     * @var {AssetLoader}
+     */
+    this.audio = new AssetLoader({
+      autoLoad: false,
+      assets: {
+        tweet: new AudioAsset('./assets/sound/tweet.wav'),
+      },
     });
 
     /**
@@ -53,42 +104,175 @@ export class Game {
      */
     this.controller1 = new Controller();
 
-    return this.initialize();
-  }
+    // Load image and audio assets, then initialize.
+    Promise.all([
+      new Promise((resolve, reject) => {
+        self.images.finished = resolve;
+      }),
+      new Promise((resolve, reject) => {
+        self.audio.finished = resolve;
+      }),
+    ]).then(() => {
+      self.initialize();
+    });
 
-  /**
-   * Initialize the game.
-   * @returns {Game}
-   */
-  initialize() {
-    canvasClear(this.screen.getContext('2d'), 'top2bottom', 1.5);
+    // Wipe canvas and start audio/image load.
+    canvasClear(this.screen.getContext('2d'), {
+      style: 'top2bottom',
+      speed: 1.5,
+      callback: () => {
+        self.images.loadAll();
+        self.audio.loadAll();
+      },
+    });
+
     return this;
   }
 
   /**
+   * Initialize the sprites/controller.
+   * @returns {Game}
+   */
+  initialize() {
+    const self = this;
+    let ctx = this.screen.getContext('2d');
+
+    this.trump = new Player({
+      sprite: new Sprite({
+        asset: this.images.get('trumphead'),
+        animations: {
+          trump: [[0, 0, 64, 83]],
+        },
+      }),
+      w: 32,
+      h: 41.5,
+      x: 304,
+      y: 170,
+    });
+
+    this.brickSprite = new Sprite({
+      asset: this.images.get('brick'),
+      animations: {
+        brick: [[0, 0, 16, 16]],
+        brickShadow: [[16, 0, 16, 16]],
+        darkBrick: [[32, 0, 16, 16]],
+      },
+    });
+
+    this.theWall = new TileMap({
+      width: 40,
+      height: 7,
+      tileWidth: 16,
+      tileHeight: 16,
+      palette: new TilePalette([
+        [this.brickSprite, 'brick'],
+        [this.brickSprite, 'brickShadow'],
+        [this.brickSprite, 'darkBrick'],
+      ]),
+      tiles: WALL_BITMAP,
+    });
+
+    this.controller1.addButtonEvent({
+      key: KEYS.A,
+      press: () => {
+        self.trump.xVector = -2;
+      },
+      release: () => {
+        if (!self.controller1.isPressed(KEYS.D)) {
+          self.trump.xVector = 0;
+        }
+      },
+    });
+
+    this.controller1.addButtonEvent({
+      key: KEYS.D,
+      press: () => {
+        self.trump.xVector = 2;
+      },
+      release: () => {
+        if (!self.controller1.isPressed(KEYS.A)) {
+          self.trump.xVector = 0;
+        }
+      },
+    });
+
+    this.controller1.addButtonEvent({
+      key: KEYS.UP,
+      press: () => {
+        self.spawnProjectile('tweet', {
+          x: self.trump.x + (self.trump.w / 2),
+          y: self.trump.y + (self.trump.h / 2),
+          w: 5,
+          h: 5,
+          xVector: 0,
+          yVector: -5,
+        });
+      }
+    });
+    this.controller1.addButtonEvent({
+      key: KEYS.DOWN,
+      press: () => {
+        self.spawnProjectile('tweet', {
+          x: self.trump.x + (self.trump.w / 2),
+          y: self.trump.y + (self.trump.h / 2),
+          w: 5,
+          h: 5,
+          xVector: 0,
+          yVector: 5,
+        });
+      }
+    });
+
+    return this.on();
+  }
+
+  /**
+   * A single interation of the main game loop.
+   */
+  tick(time) {
+    if (this.state !== STATE.ON) return;
+
+    const self = this;
+    let ctx = this.screen.getContext('2d');
+
+    canvasClear(ctx);
+    this.drawBg(ctx);
+    this.drawPlayer(ctx);
+    this.moveProjectiles(ctx);
+    this.drawProjectiles(ctx);
+
+    if (this.state == STATE.ON) {
+      window.requestAnimationFrame((time) => { self.tick(time); });
+    }
+  }
+
+  /**
    * Clean up any visual data after game has been powered off.
-   * @return {Game}
+   * @returns {Game}
    */
   destroy() {
     return this;
   }
 
   /**
-   * Pause the game state.
+   * Turn game state on.
    * @returns {Game}
    */
   on() {
+    const self = this;
+
     this.state = STATE.ON;
-    return this.initialize();
+    window.requestAnimationFrame((time) => { self.tick(time); });
+    return this;
   }
 
   /**
-   * Pause the game state.
+   * Turn game state off.
    * @returns {Game}
    */
   off() {
     this.state = STATE.OFF;
-    return this.destroy();
+    return this;
   }
 
   /**
@@ -98,5 +282,101 @@ export class Game {
   pause() {
     this.state = STATE.PAUSED;
     return this;
+  }
+
+  /**
+   * Draw the playing field background.
+   * @param {CanvasRenderingContext2d}
+   * @returns {Game}
+   */
+  drawBg(ctx) {
+    this.theWall.draw(ctx, 'center', 'center');
+  }
+
+  /**
+   * Update position and draw the Trump avatar.
+   * @param {CanvasRenderingContext2d}
+   * @returns {Game}
+   */
+  drawPlayer(ctx) {
+    var scale = ctx.canvas.scaleFactor || 1;
+    this.trump.move();
+
+    if (
+      this.trump.xVector > 0 &&
+      this.trump.x > 640
+    ) {
+      this.trump.x = 0 - (this.trump.w * 0.75);
+    }
+
+    if (
+      this.trump.xVector < 0 &&
+      this.trump.x < 0 - this.trump.w
+    ) {
+      this.trump.x = 640 - (this.trump.w * 0.25);
+    }
+
+    this.trump.draw(ctx);
+    return this;
+  }
+
+  /**
+   * Move all bullets on their vector paths.
+   * @returns {Game}
+   */
+  moveProjectiles(ctx) {
+    for (let b = 0; b < this.playerBullets.length; b++) {
+      this.playerBullets[b].move(ctx);
+    }
+  }
+
+  /**
+   * Draw all bullets.
+   * @returns {Game}
+   */
+  drawProjectiles(ctx) {
+    var scale = ctx.canvas.scaleFactor || 1;
+
+    for (let b = 0; b < this.playerBullets.length; b++) {
+      ctx.beginPath();
+      ctx.strokeStyle = '#ffffff';
+      ctx.arc(this.playerBullets[b].x * scale, this.playerBullets[b].y * scale, this.playerBullets[b].w * scale, 0, 2 * Math.PI);
+      ctx.stroke();
+    }
+  }
+
+  /**
+   * Fire a projectile at a given coordinate & vector.
+   * @param {string} type - the type of projectile
+   * @param {number} x - starting X coord
+   * @param {number} y - starting Y coord
+   * @param {number} xVector - the X vector for the projectile
+   * @param {number} yVector - the Y vector for the projectile
+   * @returns {Projectile}
+   */
+  spawnProjectile(type, {
+    x = 0,
+    y = 0,
+    w = 0,
+    h = 0,
+    xVector = 0,
+    yVector = 0,
+  }) {
+
+    var ctx = this.screen.getContext('2d');
+
+    switch (type) {
+      case 'tweet':
+        this.audio.get('tweet').play();
+        this.playerBullets.push(new Projectile({
+          x: x,
+          y: y,
+          w: w,
+          h: h,
+          xVector: xVector,
+          yVector: yVector,
+        }));
+        break;
+    }
   }
 }
