@@ -205,7 +205,7 @@ export class Game {
           w: 5,
           h: 5,
           xVector: 0,
-          yVector: -5,
+          yVector: -4,
         });
       }
     });
@@ -218,7 +218,7 @@ export class Game {
           w: 5,
           h: 5,
           xVector: 0,
-          yVector: 5,
+          yVector: 4,
         });
       }
     });
@@ -326,7 +326,12 @@ export class Game {
    */
   moveProjectiles(ctx) {
     for (let b = 0; b < this.playerBullets.length; b++) {
-      this.playerBullets[b].move(ctx);
+      if (this.playerBullets[b].isVisible(ctx)) {
+        this.playerBullets[b].move(ctx);
+      }
+      else {
+        this.playerBullets.splice(b, 1);
+      }
     }
   }
 
@@ -363,19 +368,22 @@ export class Game {
     yVector = 0,
   }) {
 
+    const PLAYER_MAX_BULLETS = 5;
     var ctx = this.screen.getContext('2d');
 
     switch (type) {
       case 'tweet':
-        this.audio.get('tweet').play();
-        this.playerBullets.push(new Projectile({
-          x: x,
-          y: y,
-          w: w,
-          h: h,
-          xVector: xVector,
-          yVector: yVector,
-        }));
+        if (this.playerBullets.length < PLAYER_MAX_BULLETS) {
+          this.audio.get('tweet').play();
+          this.playerBullets.push(new Projectile({
+            x: x,
+            y: y,
+            w: w,
+            h: h,
+            xVector: xVector,
+            yVector: yVector,
+          }));
+        }
         break;
     }
   }

@@ -8,7 +8,7 @@ export class Projectile extends Object2D {
 
   /**
    * Build a new two-dimensional game object.
-   * @returns {Object2D}
+   * @returns {Projectile}
    */
   constructor({
     x = 0,

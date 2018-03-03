@@ -58,6 +58,8 @@ export const canvasFit = (ctx) => {
   var parentH = ctx.canvas.parentNode.clientHeight;
   var aspect = origW / origH;
 
+  ctx.canvas.origW = origW;
+  ctx.canvas.origH = origH;
   ctx.canvas.scaleFactor = parentH / origH;
   ctx.canvas.height = origH * ctx.canvas.scaleFactor;
   ctx.canvas.width = origH * ctx.canvas.scaleFactor * (origW / origH);
