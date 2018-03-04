@@ -1,4 +1,5 @@
 import { ImageAsset } from '../modules/ImageAsset';
+import { TimedEvent } from '../modules/TimedEvent';
 
 /**
  * Clear a canvas of all image data.
@@ -76,6 +77,16 @@ export const canvasFit = (ctx) => {
   else {
     ctx.canvas.style.display = 'block';
   }
+}
+
+/**
+ * Spawn a repeating TimedEvent.
+ */
+export const cycleEvent = (event, delay) => {
+  return new TimedEvent(event, {
+    delay: delay,
+    repeat: true,
+  });
 }
 
 /**

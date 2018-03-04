@@ -83,10 +83,10 @@ export class Object2D {
    */
   isInBounds(x = 0, y = 0, w = 0, h = 0) {
     return (
-      this.x + this.w >= x &&
-      this.y + this.h >= y &&
-      this.x <= w &&
-      this.y <= h
+       this.x < x + w &&
+       this.x + this.w > x &&
+       this.y < y + h &&
+       this.h + this.y > y
     );
   }
 

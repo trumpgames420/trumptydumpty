@@ -1,4 +1,4 @@
-import { canvasClear, randomInt } from '../lib/utils';
+import { canvasClear, cycleEvent, randomInt } from '../lib/utils';
 import { AssetLoader } from '../modules/AssetLoader';
 import { AudioAsset } from '../modules/AudioAsset';
 import { Controller, KEYS } from '../modules/Controller';
@@ -25,7 +25,6 @@ export const STATE = {
  * @var {array}
  */
 export const WALL_BITMAP = [
-  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
   1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
   1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
   1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
@@ -168,7 +167,7 @@ export class Game {
 
     this.theWall = new TileMap({
       width: 40,
-      height: 7,
+      height: 6,
       tileWidth: 16,
       tileHeight: 16,
       palette: new TilePalette([
@@ -204,7 +203,7 @@ export class Game {
     });
 
     this.controller1.addButtonEvent({
-      key: KEYS.UP,
+      key: KEYS.W,
       press: () => {
         self.spawnProjectile('tweet', {
           x: self.trump.x + (self.trump.w / 2),
@@ -217,7 +216,7 @@ export class Game {
       }
     });
     this.controller1.addButtonEvent({
-      key: KEYS.DOWN,
+      key: KEYS.S,
       press: () => {
         self.spawnProjectile('tweet', {
           x: self.trump.x + (self.trump.w / 2),
@@ -249,6 +248,7 @@ export class Game {
     this.moveMobs(ctx);
     this.drawMobs(ctx);
     this.moveProjectiles(ctx);
+    this.detectProjectileCollisions(ctx);
     this.drawProjectiles(ctx);
 
     if (this.state == STATE.ON) {
@@ -273,7 +273,7 @@ export class Game {
     const ENEMY_SPAWN_RATE = 1500;
     this.state = STATE.ON;
 
-    setInterval(() => {
+    cycleEvent(() => {
       self.spawnMob(self.screen.getContext('2d'));
     }, ENEMY_SPAWN_RATE);
 
@@ -336,6 +336,30 @@ export class Game {
   }
 
   /**
+   * Detect collisions between projectiles and enemies.
+   * @param {CanvasRenderingContext2d} ctx
+   * @returns {Game}
+   */
+  detectProjectileCollisions(ctx) {
+    var collisions = [];
+
+    for (var b in this.playerBullets) {
+      for (var m in this.mobs) {
+        if (this.playerBullets[b].collidesWith(this.mobs[m])) {
+          collisions.push([b, m]);
+        }
+      }
+    }
+
+    for (var c in collisions) {
+      this.playerBullets.splice(collisions[c][0], 1);
+      this.mobs.splice(collisions[c][1], 1);
+    }
+
+    return this;
+  }
+
+  /**
    * Move all enemies/NPCs.
    * @param {CanvasRenderingContext2d} ctx
    * @returns {Game}
@@ -370,7 +394,7 @@ export class Game {
   drawMobs(ctx) {
     var scale = ctx.canvas.scaleFactor || 1;
 
-    for (let m = 0; m < this.mobs.length; m++) {
+    for (let m in this.mobs) {
       ctx.fillStyle = '#ff0000';
       ctx.fillRect(this.mobs[m].x * scale, this.mobs[m].y * scale, this.mobs[m].w * scale, this.mobs[m].h * scale);
     }
@@ -399,10 +423,13 @@ export class Game {
    * @returns {Mob}
    */
   spawnMob(ctx, type = null) {
+    const MAX_ENEMIES = 20;
+    if (this.mobs.length >= MAX_ENEMIES) return;
+
     switch (type) {
       default:
         var mob = new Enemy({
-          x: randomInt(0, ctx.canvas.origW),
+          x: randomInt(0, ctx.canvas.origW - 32),
           y: -32,
           w: 32,
           h: 32,

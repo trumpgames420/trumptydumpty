@@ -14,7 +14,7 @@ export class Player extends Mob {
 
   /**
    * Build the player object.
-   * @returns {Trump}
+   * @returns {Player}
    */
   constructor({
     x = 0,
