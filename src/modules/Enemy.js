@@ -1,13 +1,13 @@
 import { Mob } from '../modules/Mob';
 
 /**
- * A base class for all projectiles.
+ * A class for the player object.
  */
-export class Projectile extends Mob {
+export class Enemy extends Mob {
 
   /**
-   * Build a new two-dimensional game object.
-   * @returns {Projectile}
+   * Build the player object.
+   * @returns {Trump}
    */
   constructor({
     x = 0,
@@ -18,6 +18,7 @@ export class Projectile extends Mob {
     yVector = 0,
     sprite = null,
   } = {}) {
+
     super({ x: x, y: y, w: w, h: h, xVector: xVector, yVector: yVector, sprite: sprite });
   }
 }

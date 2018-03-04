@@ -1,7 +1,8 @@
-import { canvasClear } from '../lib/utils';
+import { canvasClear, randomInt } from '../lib/utils';
 import { AssetLoader } from '../modules/AssetLoader';
 import { AudioAsset } from '../modules/AudioAsset';
 import { Controller, KEYS } from '../modules/Controller';
+import { Enemy } from '../modules/Enemy';
 import { ImageAsset } from '../modules/ImageAsset';
 import { Player } from '../modules/Player';
 import { Projectile } from '../modules/Projectile';
@@ -74,6 +75,12 @@ export class Game {
      * @var {array}
      */
     this.enemyBullets = [];
+
+    /**
+     * An array of enemy mobs.
+     * @var {array}
+     */
+    this.mobs = [];
 
     /**
      * An asset loader for game image assets.
@@ -233,11 +240,14 @@ export class Game {
     if (this.state !== STATE.ON) return;
 
     const self = this;
-    let ctx = this.screen.getContext('2d');
+    const ctx = this.screen.getContext('2d');
 
     canvasClear(ctx);
+    this.lastTick = time;
     this.drawBg(ctx);
     this.drawPlayer(ctx);
+    this.moveMobs(ctx);
+    this.drawMobs(ctx);
     this.moveProjectiles(ctx);
     this.drawProjectiles(ctx);
 
@@ -260,8 +270,13 @@ export class Game {
    */
   on() {
     const self = this;
-
+    const ENEMY_SPAWN_RATE = 1500;
     this.state = STATE.ON;
+
+    setInterval(() => {
+      self.spawnMob(self.screen.getContext('2d'));
+    }, ENEMY_SPAWN_RATE);
+
     window.requestAnimationFrame((time) => { self.tick(time); });
     return this;
   }
@@ -286,7 +301,7 @@ export class Game {
 
   /**
    * Draw the playing field background.
-   * @param {CanvasRenderingContext2d}
+   * @param {CanvasRenderingContext2d} ctx
    * @returns {Game}
    */
   drawBg(ctx) {
@@ -295,7 +310,7 @@ export class Game {
 
   /**
    * Update position and draw the Trump avatar.
-   * @param {CanvasRenderingContext2d}
+   * @param {CanvasRenderingContext2d} ctx
    * @returns {Game}
    */
   drawPlayer(ctx) {
@@ -321,7 +336,19 @@ export class Game {
   }
 
   /**
+   * Move all enemies/NPCs.
+   * @param {CanvasRenderingContext2d} ctx
+   * @returns {Game}
+   */
+  moveMobs(ctx) {
+    for (let m = 0; m < this.mobs.length; m++) {
+      this.mobs[m].move(ctx);
+    }
+  }
+
+  /**
    * Move all bullets on their vector paths.
+   * @param {CanvasRenderingContext2d} ctx
    * @returns {Game}
    */
   moveProjectiles(ctx) {
@@ -336,7 +363,22 @@ export class Game {
   }
 
   /**
+   * Draw all mobs.
+   * @param {CanvasRenderingContext2d} ctx
+   * @returns {Game}
+   */
+  drawMobs(ctx) {
+    var scale = ctx.canvas.scaleFactor || 1;
+
+    for (let m = 0; m < this.mobs.length; m++) {
+      ctx.fillStyle = '#ff0000';
+      ctx.fillRect(this.mobs[m].x * scale, this.mobs[m].y * scale, this.mobs[m].w * scale, this.mobs[m].h * scale);
+    }
+  }
+
+  /**
    * Draw all bullets.
+   * @param {CanvasRenderingContext2d} ctx
    * @returns {Game}
    */
   drawProjectiles(ctx) {
@@ -348,6 +390,29 @@ export class Game {
       ctx.arc(this.playerBullets[b].x * scale, this.playerBullets[b].y * scale, this.playerBullets[b].w * scale, 0, 2 * Math.PI);
       ctx.stroke();
     }
+  }
+
+  /**
+   * Spawn an NPC/enemies.
+   * @param {CanvasRenderingContext2d} ctx
+   * @param {string} type
+   * @returns {Mob}
+   */
+  spawnMob(ctx, type = null) {
+    switch (type) {
+      default:
+        var mob = new Enemy({
+          x: randomInt(0, ctx.canvas.origW),
+          y: -32,
+          w: 32,
+          h: 32,
+          yVector: 0.5,
+        });
+        this.mobs.push(mob);
+        break;
+    }
+
+    return mob;
   }
 
   /**
@@ -374,17 +439,20 @@ export class Game {
     switch (type) {
       case 'tweet':
         if (this.playerBullets.length < PLAYER_MAX_BULLETS) {
-          this.audio.get('tweet').play();
-          this.playerBullets.push(new Projectile({
+          var projectile = new Projectile({
             x: x,
             y: y,
             w: w,
             h: h,
             xVector: xVector,
             yVector: yVector,
-          }));
+          });
+          this.audio.get('tweet').play();
+          this.playerBullets.push(projectile);
         }
         break;
     }
+
+    return projectile;
   }
 }

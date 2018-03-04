@@ -1,4 +1,4 @@
-import { Object2D } from '../modules/Object2D';
+import { Mob } from '../modules/Mob';
 import { Sprite } from '../modules/Sprite';
 
 /**
@@ -10,7 +10,7 @@ export const STEP_SIZE = 5;
 /**
  * A class for the player object.
  */
-export class Player extends Object2D {
+export class Player extends Mob {
 
   /**
    * Build the player object.
@@ -24,13 +24,7 @@ export class Player extends Object2D {
     sprite = new Sprite(),
   } = {}) {
 
-    super({ x: x, y: y, w: w, h: h });
-
-    /**
-     * The player image sprite.
-     * @var {ImageAsset}
-     */
-    this.sprite = sprite;
+    super({ x: x, y: y, w: w, h: h, sprite: sprite });
 
     this.movingLeft = false;
     this.movingRight = false;
@@ -50,12 +44,5 @@ export class Player extends Object2D {
     this.movingLeft = false;
     this.movingRight = false;
     return this;
-  }
-
-  draw(ctx) {
-    let scale = ctx.canvas.scaleFactor || 1;
-    if (this.x == 'center') this.x = (ctx.canvas.width / 2) - (this.w / 2);
-    if (this.y == 'center') this.y = (ctx.canvas.height / 2) - (this.h / 2);
-    this.sprite.draw(ctx, this.x * scale, this.y * scale, this.w * scale, this.h * scale);
   }
 }
