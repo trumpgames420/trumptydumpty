@@ -8,6 +8,7 @@ import { Player } from '../modules/Player';
 import { Projectile } from '../modules/Projectile';
 import { TileMap } from '../modules/TileMap';
 import { TilePalette } from '../modules/TilePalette';
+import { TimedEvent } from '../modules/TimedEvent';
 import { Sprite } from '../modules/Sprite';
 
 /**
@@ -28,8 +29,6 @@ export const WALL_BITMAP = [
   1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
   1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
   1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
-  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
-  2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
   2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
 ];
 
@@ -90,6 +89,7 @@ export class Game {
       assets: {
         brick: new ImageAsset('./assets/img/brick.gif'),
         trumphead: new ImageAsset('./assets/img/trumphead.gif'),
+        trump: new ImageAsset('./assets/img/trump.png'),
       },
     });
 
@@ -145,13 +145,17 @@ export class Game {
 
     this.trump = new Player({
       sprite: new Sprite({
-        asset: this.images.get('trumphead'),
+        asset: this.images.get('trump'),
         animations: {
-          trump: [[0, 0, 64, 83]],
+          trump: [[0, 0, 16, 24]],
+          walk_left: [[32, 0, 16, 24], [32, 24, 16, 24]],
+          walk_right: [[48, 0, 16, 24], [48, 24, 16, 24]],
+          shoot_down: [[0, 0, 16, 24], [0, 16, 16, 24]],
+          shoot_up: [[16, 0, 16, 24], [16, 16, 16, 24]],
         },
       }),
       w: 32,
-      h: 41.5,
+      h: 48,
       x: 304,
       y: 170,
     });
@@ -167,7 +171,7 @@ export class Game {
 
     this.theWall = new TileMap({
       width: 40,
-      height: 6,
+      height: 4,
       tileWidth: 16,
       tileHeight: 16,
       palette: new TilePalette([
@@ -181,11 +185,11 @@ export class Game {
     this.controller1.addButtonEvent({
       key: KEYS.A,
       press: () => {
-        self.trump.xVector = -2;
+        self.trump.moveLeft();
       },
       release: () => {
         if (!self.controller1.isPressed(KEYS.D)) {
-          self.trump.xVector = 0;
+          self.trump.stopMoving();
         }
       },
     });
@@ -193,11 +197,11 @@ export class Game {
     this.controller1.addButtonEvent({
       key: KEYS.D,
       press: () => {
-        self.trump.xVector = 2;
+        self.trump.moveRight();
       },
       release: () => {
         if (!self.controller1.isPressed(KEYS.A)) {
-          self.trump.xVector = 0;
+          self.trump.stopMoving();
         }
       },
     });
@@ -271,11 +275,13 @@ export class Game {
   on() {
     const self = this;
     const ENEMY_SPAWN_RATE = 1500;
+    const ctx = this.screen.getContext('2d');
     this.state = STATE.ON;
 
-    cycleEvent(() => {
-      self.spawnMob(self.screen.getContext('2d'));
-    }, ENEMY_SPAWN_RATE);
+    new TimedEvent(() => { self.spawnMob(ctx); }, {
+      delay: ENEMY_SPAWN_RATE,
+      repeat: true,
+    });
 
     window.requestAnimationFrame((time) => { self.tick(time); });
     return this;
@@ -365,7 +371,7 @@ export class Game {
    * @returns {Game}
    */
   moveMobs(ctx) {
-    for (let m = 0; m < this.mobs.length; m++) {
+    for (let m in this.mobs) {
       this.mobs[m].move(ctx);
     }
   }
@@ -376,7 +382,7 @@ export class Game {
    * @returns {Game}
    */
   moveProjectiles(ctx) {
-    for (let b = 0; b < this.playerBullets.length; b++) {
+    for (var b in this.playerBullets) {
       if (this.playerBullets[b].isVisible(ctx)) {
         this.playerBullets[b].move(ctx);
       }
@@ -408,9 +414,10 @@ export class Game {
   drawProjectiles(ctx) {
     var scale = ctx.canvas.scaleFactor || 1;
 
-    for (let b = 0; b < this.playerBullets.length; b++) {
+    for (let b in this.playerBullets) {
       ctx.beginPath();
       ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = this.playerBullets[b].w * scale;
       ctx.arc(this.playerBullets[b].x * scale, this.playerBullets[b].y * scale, this.playerBullets[b].w * scale, 0, 2 * Math.PI);
       ctx.stroke();
     }

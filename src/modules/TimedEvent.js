@@ -15,7 +15,7 @@ export class TimedEvent {
   constructor(event, {
     delay = 0,
     repeat = false,
-    limit = 1,
+    limit = null,
     until = null,
   } = {}) {
 
@@ -36,6 +36,12 @@ export class TimedEvent {
      * @var {boolean}
      */
     this.repeat = repeat;
+
+    /**
+     * The number of times the event should repeat.
+     * @var {int}
+     */
+    this.limit = limit;
 
     /**
      * A truthy function to check if repeat is done firing.
@@ -81,23 +87,25 @@ export class TimedEvent {
       timestamp = timestamp || 0;
       self.delta += timestamp - self.lastTick;
 
+      if (typeof self.until === 'function') {
+        if (self.until(self)) {
+          self.finished = true;
+          return;
+        }
+      }
+
       if (self.delta >= self.delay) {
         self.delta = 0;
         self.event();
         self.repetitions++;
+        self.finished = true;
 
         if (self.repeat) {
           self.finished = false;
 
-          if (typeof self.until === 'function') {
-            self.finished = self.until(self);
-          }
-          else if (self.limit && self.repetitions >= self.limit) {
+          if (self.limit && self.repetitions >= self.limit) {
             self.finished = true;
           }
-        }
-        else {
-          self.finished = true;
         }
       }
 
