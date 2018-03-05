@@ -108,4 +108,17 @@ export class Player extends Mob {
 
     return this;
   }
+
+  /**
+   * Update the position of the object, based on its vectors.
+   * @returns {Player}
+   */
+  move() {
+    if (!this.isShooting) {
+      this.x += this.xVector;
+      this.y += this.yVector;
+    }
+
+    return this;
+  }
 }
