@@ -19,6 +19,8 @@ export class TimedEvent {
     until = null,
   } = {}) {
 
+    const self = this;
+
     /**
      * The event to fire.
      * @var {function}
@@ -73,7 +75,10 @@ export class TimedEvent {
      */
     this.delta = 0;
 
-    return this.tick();
+    requestAnimationFrame((timestamp) => {
+      self.lastTick = timestamp;
+      self.tick();
+    });
   }
 
   /**

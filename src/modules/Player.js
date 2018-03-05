@@ -26,6 +26,7 @@ export class Player extends Mob {
 
     super({ x: x, y: y, w: w, h: h, sprite: sprite });
 
+    this.isShooting = false;
     this.movingLeft = false;
     this.movingRight = false;
     this.sprite.animation = 'trump';
@@ -37,12 +38,12 @@ export class Player extends Mob {
     this.movingRight = false;
     this.xVector = -2;
     this.sprite.animation = 'walk_left';
-    this.sprite.frame = 1;
+    this.sprite.frame = 0;
 
     const self = this;
     const animator = new TimedEvent(() => {
-      this.sprite.animation = 'walk_left';
-      this.sprite.frame = (this.sprite.frame == 0) ? 1 : 0;
+      self.sprite.animation = 'walk_left';
+      self.sprite.frame = (self.sprite.frame == 0) ? 1 : 0;
     }, {
       delay: 200,
       repeat: true,
@@ -58,12 +59,12 @@ export class Player extends Mob {
     this.movingLeft = false;
     this.xVector = 2;
     this.sprite.animation = 'walk_right';
-    this.sprite.frame = 1;
+    this.sprite.frame = 0;
 
     const self = this;
     const animator = new TimedEvent(() => {
-      this.sprite.animation = 'walk_right';
-      this.sprite.frame = (this.sprite.frame == 0) ? 1 : 0;
+      self.sprite.animation = 'walk_right';
+      self.sprite.frame = (self.sprite.frame == 0) ? 1 : 0;
     }, {
       delay: 200,
       repeat: true,
@@ -77,20 +78,34 @@ export class Player extends Mob {
     this.movingLeft = false;
     this.movingRight = false;
     this.xVector = 0;
-    this.sprite.animation = 'trump';
-    this.sprite.frame = 0;
+
     return this;
   }
 
   shootUp() {
     this.sprite.animation = 'shoot_up';
     this.sprite.frame = 0;
+    this.isShooting = true;
+
+    const self = this;
+    const animator = new TimedEvent(() => {
+      self.isShooting = false;
+    }, { delay: 100 });
+
     return this;
   }
 
   shootDown() {
     this.sprite.animation = 'shoot_down';
     this.sprite.frame = 0;
+    this.isShooting = true;
+
+    const self = this;
+    const animator = new TimedEvent(() => {
+      self.isShooting = false;
+    }, { delay: 100 });
+
+
     return this;
   }
 }

@@ -150,14 +150,14 @@ export class Game {
           trump: [[0, 0, 16, 24]],
           walk_left: [[32, 0, 16, 24], [32, 24, 16, 24]],
           walk_right: [[48, 0, 16, 24], [48, 24, 16, 24]],
-          shoot_down: [[0, 24, 16, 24]],
-          shoot_up: [[16, 24, 16, 24]],
+          shoot_down: [[0, 24, 16, 24], [0, 0, 16, 24]],
+          shoot_up: [[16, 24, 16, 24], [16, 0, 16, 24]],
         },
       }),
       w: 32,
       h: 48,
       x: 304,
-      y: 170,
+      y: 160,
     });
 
     this.brickSprite = new Sprite({
@@ -282,6 +282,20 @@ export class Game {
 
     new TimedEvent(() => { self.spawnMob(ctx); }, {
       delay: ENEMY_SPAWN_RATE,
+      repeat: true,
+    });
+
+    new TimedEvent(() => {
+      if (
+        !self.trump.isShooting &&
+        !self.trump.movingLeft &&
+        !self.trump.movingRight
+      ) {
+        self.trump.sprite.animation = 'trump';
+        self.trump.sprite.frame = 0;
+      }
+    }, {
+      delay: 60,
       repeat: true,
     });
 
