@@ -150,8 +150,8 @@ export class Game {
           trump: [[0, 0, 16, 24]],
           walk_left: [[32, 0, 16, 24], [32, 24, 16, 24]],
           walk_right: [[48, 0, 16, 24], [48, 24, 16, 24]],
-          shoot_down: [[0, 0, 16, 24], [0, 16, 16, 24]],
-          shoot_up: [[16, 0, 16, 24], [16, 16, 16, 24]],
+          shoot_down: [[0, 24, 16, 24]],
+          shoot_up: [[16, 24, 16, 24]],
         },
       }),
       w: 32,
@@ -209,6 +209,7 @@ export class Game {
     this.controller1.addButtonEvent({
       key: KEYS.W,
       press: () => {
+        self.trump.shootUp();
         self.spawnProjectile('tweet', {
           x: self.trump.x + (self.trump.w / 2),
           y: self.trump.y + (self.trump.h / 2),
@@ -222,6 +223,7 @@ export class Game {
     this.controller1.addButtonEvent({
       key: KEYS.S,
       press: () => {
+        self.trump.shootDown();
         self.spawnProjectile('tweet', {
           x: self.trump.x + (self.trump.w / 2),
           y: self.trump.y + (self.trump.h / 2),

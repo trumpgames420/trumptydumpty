@@ -32,6 +32,7 @@ export class Player extends Mob {
   }
 
   moveLeft() {
+    if (this.movingLeft) return;
     this.movingLeft = true;
     this.movingRight = false;
     this.xVector = -2;
@@ -40,6 +41,7 @@ export class Player extends Mob {
 
     const self = this;
     const animator = new TimedEvent(() => {
+      this.sprite.animation = 'walk_left';
       this.sprite.frame = (this.sprite.frame == 0) ? 1 : 0;
     }, {
       delay: 200,
@@ -51,6 +53,7 @@ export class Player extends Mob {
   }
 
   moveRight() {
+    if (this.movingRight) return;
     this.movingRight = true;
     this.movingLeft = false;
     this.xVector = 2;
@@ -59,6 +62,7 @@ export class Player extends Mob {
 
     const self = this;
     const animator = new TimedEvent(() => {
+      this.sprite.animation = 'walk_right';
       this.sprite.frame = (this.sprite.frame == 0) ? 1 : 0;
     }, {
       delay: 200,
@@ -74,6 +78,18 @@ export class Player extends Mob {
     this.movingRight = false;
     this.xVector = 0;
     this.sprite.animation = 'trump';
+    this.sprite.frame = 0;
+    return this;
+  }
+
+  shootUp() {
+    this.sprite.animation = 'shoot_up';
+    this.sprite.frame = 0;
+    return this;
+  }
+
+  shootDown() {
+    this.sprite.animation = 'shoot_down';
     this.sprite.frame = 0;
     return this;
   }
