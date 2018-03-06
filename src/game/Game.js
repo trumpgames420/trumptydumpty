@@ -147,11 +147,11 @@ export class Game {
       sprite: new Sprite({
         asset: this.images.get('trump'),
         animations: {
-          trump: [[0, 0, 16, 24]],
-          walk_left: [[32, 0, 16, 24], [32, 24, 16, 24]],
-          walk_right: [[48, 0, 16, 24], [48, 24, 16, 24]],
-          shoot_down: [[0, 24, 16, 24], [0, 0, 16, 24]],
-          shoot_up: [[16, 24, 16, 24], [16, 0, 16, 24]],
+          trump: [[0, 0, 32, 48]],
+          walk_left: [[64, 0, 32, 48], [64, 48, 32, 48]],
+          walk_right: [[96, 0, 32, 48], [96, 48, 32, 48]],
+          shoot_down: [[0, 48, 32, 48], [0, 0, 32, 48]],
+          shoot_up: [[32, 48, 32, 48], [32, 0, 32, 48]],
         },
       }),
       w: 32,

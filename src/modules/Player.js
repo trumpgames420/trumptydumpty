@@ -105,7 +105,6 @@ export class Player extends Mob {
       self.isShooting = false;
     }, { delay: 100 });
 
-
     return this;
   }
 
