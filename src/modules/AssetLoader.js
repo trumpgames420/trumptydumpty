@@ -75,10 +75,10 @@ export class AssetLoader {
     this.loadStatus = STATUS.FINISHED;
 
     /**
-     * An array of assets that haven't finished loading.
+     * The original array of assets.
      * @var {object}
      */
-    this.unloadedAssets = {};
+    this.queuedAssets = {};
 
     /**
      * An array of assets that have finished loading.
@@ -114,7 +114,7 @@ export class AssetLoader {
       this.progressBar.dispatchEvent(EVENT.FINISHED);
       this.finished(this);
     }
-    else if (this.unloadedAssets.length > 0) {
+    else if (this.queuedAssets.length > 0) {
       // Dispatch error event if any assets error out.
       this.loadStatus = STATUS.ERROR;
       this.progressBar.dispatchEvent(EVENT.ERROR);
@@ -132,7 +132,7 @@ export class AssetLoader {
    */
   addAssets(newAssets = {}) {
     for (var assetName in newAssets) {
-      this.unloadedAssets[assetName] = newAssets[assetName];
+      this.queuedAssets[assetName] = newAssets[assetName];
       this.totalAssets++;
     }
 
@@ -156,28 +156,25 @@ export class AssetLoader {
     this.loadStatus = STATUS.LOADING;
 
     // Listen for finished event and move to loaded array.
-    this.unloadedAssets[assetName].element.addEventListener('assetFinished', () => {
-      self.loadedAssets[assetName] = self.unloadedAssets[assetName];
-      delete self.unloadedAssets[assetName];
+    this.queuedAssets[assetName].element.addEventListener('assetFinished', () => {
+      self.loadedAssets[assetName] = self.queuedAssets[assetName];
       self.refresh();
     });
 
     // Error or stalled go into failed array.
-    this.unloadedAssets[assetName].element.addEventListener('assetError', () => {
-      self.failedAssets[assetName] = self.unloadedAssets[assetName];
-      delete self.unloadedAssets[assetName];
+    this.queuedAssets[assetName].element.addEventListener('assetError', () => {
+      self.failedAssets[assetName] = self.queuedAssets[assetName];
       self.progressBar.dispatchEvent(EVENT.ERROR);
       self.refresh();
     });
-    this.unloadedAssets[assetName].element.addEventListener('assetStalled', () => {
-      self.failedAssets[assetName] = self.unloadedAssets[assetName];
-      delete self.unloadedAssets[assetName];
+    this.queuedAssets[assetName].element.addEventListener('assetStalled', () => {
+      self.failedAssets[assetName] = self.queuedAssets[assetName];
       self.progressBar.dispatchEvent(EVENT.ERROR);
       self.refresh();
     });
 
     // Begin loading the asset.
-    this.unloadedAssets[assetName].initialize();
+    this.queuedAssets[assetName].initialize();
 
     return this;
   }
@@ -187,7 +184,7 @@ export class AssetLoader {
    * @returns {AssetLoader}
    */
   loadAll() {
-    const keys = objKeys(this.unloadedAssets);
+    const keys = objKeys(this.queuedAssets);
 
     for (let i = 0; i < keys.length; i++) {
       this.load(keys[i]);
