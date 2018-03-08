@@ -1,9 +1,10 @@
+import { Object2D } from './Object2D';
 import { TilePalette } from './TilePalette';
 
 /**
  * A 2D map of Tile objects.
  */
-export class TileMap {
+export class TileMap extends Object2D {
 
   /**
    * A 2D map of Tile objects.
@@ -22,7 +23,11 @@ export class TileMap {
     tileHeight = 0,
     tiles = [],
     palette = null,
+    x = 0,
+    y = 0,
   }) {
+;
+    super({ x: x, y: y, w: tileWidth * width, h: tileHeight * height });
 
     /**
      * The width (in tiles) of the map.
@@ -120,21 +125,23 @@ export class TileMap {
 
   /**
    * Render a tile map to a canvas.
-   * @param {CanvasRenderingContext2D} context - a 2d canvas context
+   * @param {CanvasRenderingContext2D} ctx - a 2d canvas context
    * @param {int|string} x - the x coordinate of the canvas to render the map
    *   if string: 'center' will center the tilemap horizontally
    * @param {int|string} y - the y coordinate of the canvas to render the map
    *   if string: 'center' will center the tilemap vertically
    * @returns {TileMap}
    */
-  draw(context, x = 0, y = 0) {
-    var scaleFactor = context.canvas.scaleFactor || 1;
+  draw(ctx, x = 0, y = 0) {
+    var scaleFactor = ctx.canvas.scaleFactor || 1;
 
     if (x == 'center') {
-      x = (context.canvas.width / 2) - (this.width * this.tileWidth / 2) * scaleFactor;
+      x = (ctx.canvas.width / 2) - (this.width * this.tileWidth / 2) * scaleFactor;
+      this.x = x;
     }
     if (y == 'center') {
-      y = (context.canvas.height / 2) - (this.height * this.tileHeight / 2) * scaleFactor;
+      y = (ctx.canvas.height / 2) - (this.height * this.tileHeight / 2) * scaleFactor;
+      this.y = y;
     }
 
     // Render entire map.
@@ -152,7 +159,7 @@ export class TileMap {
 
           if (sprite && sprite.animation) {
             sprite.draw(
-              context,
+              ctx,
               x + (mapX * this.tileWidth * scaleFactor),
               y + (mapY * this.tileHeight * scaleFactor),
               this.tileWidth * scaleFactor,

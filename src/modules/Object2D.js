@@ -106,4 +106,15 @@ export class Object2D {
   isVisible(ctx) {
     return this.isInBounds(0, 0, ctx.canvas.origW, ctx.canvas.origH);
   }
+
+  /**
+   * Draw a red square around the estimated collision boundary.
+   */
+  debugBounds(ctx) {
+    const scale = ctx.canvas.scaleFactor || 1;
+    ctx.strokeStyle = '#ff0000';
+    ctx.lineWidth = 2;
+    ctx.rect(this.x, this.y, this.w * scale, this.h * scale);
+    ctx.stroke();
+  }
 }

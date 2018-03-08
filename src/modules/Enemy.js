@@ -7,7 +7,7 @@ export class Enemy extends Mob {
 
   /**
    * Build the player object.
-   * @returns {Trump}
+   * @returns {Enemy}
    */
   constructor({
     x = 0,

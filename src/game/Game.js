@@ -1,4 +1,4 @@
-import { canvasClear, cycleEvent, randomInt } from '../lib/utils';
+import { canvasClear, cycleEvent, randomInt, sortBy } from '../lib/utils';
 import { AssetLoader } from '../modules/AssetLoader';
 import { AudioAsset } from '../modules/AudioAsset';
 import { Controller, KEYS } from '../modules/Controller';
@@ -90,6 +90,7 @@ export class Game {
         brick: new ImageAsset('./assets/img/brick.gif'),
         trumphead: new ImageAsset('./assets/img/trumphead.gif'),
         trump: new ImageAsset('./assets/img/trump.png'),
+        hombre: new ImageAsset('./assets/img/bad_hombre.png'),
       },
     });
 
@@ -101,6 +102,8 @@ export class Game {
       autoLoad: false,
       assets: {
         tweet: new AudioAsset('./assets/sound/tweet.wav'),
+        damage: new AudioAsset('./assets/sound/damage.wav'),
+        enemy_damage: new AudioAsset('./assets/sound/enemy_damage.wav'),
       },
     });
 
@@ -131,8 +134,6 @@ export class Game {
         self.audio.loadAll();
       },
     });
-
-    return this;
   }
 
   /**
@@ -280,12 +281,8 @@ export class Game {
     const ctx = this.screen.getContext('2d');
     this.state = STATE.ON;
 
-    new TimedEvent(() => { self.spawnMob(ctx); }, {
-      delay: ENEMY_SPAWN_RATE,
-      repeat: true,
-    });
-
-    new TimedEvent(() => {
+    cycleEvent(() => { self.spawnMob(ctx); }, ENEMY_SPAWN_RATE);
+    cycleEvent(() => {
       if (
         !self.trump.isShooting &&
         !self.trump.movingLeft &&
@@ -294,10 +291,7 @@ export class Game {
         self.trump.sprite.animation = 'trump';
         self.trump.sprite.frame = 0;
       }
-    }, {
-      delay: 60,
-      repeat: true,
-    });
+    }, 60);
 
     window.requestAnimationFrame((time) => { self.tick(time); });
     return this;
@@ -374,6 +368,7 @@ export class Game {
     }
 
     for (var c in collisions) {
+      this.audio.get('enemy_damage').volume(0.25).play();
       this.playerBullets.splice(collisions[c][0], 1);
       this.mobs.splice(collisions[c][1], 1);
     }
@@ -387,8 +382,15 @@ export class Game {
    * @returns {Game}
    */
   moveMobs(ctx) {
+    var collisions = [];
+
     for (let m in this.mobs) {
       this.mobs[m].move(ctx);
+      if (this.mobs[m].collidesWith(this.theWall)) {
+        this.mobs.splice(m, 1);
+        this.damageWall();
+        this.audio.get('damage').volume(0.25).play();
+      }
     }
   }
 
@@ -417,8 +419,7 @@ export class Game {
     var scale = ctx.canvas.scaleFactor || 1;
 
     for (let m in this.mobs) {
-      ctx.fillStyle = '#ff0000';
-      ctx.fillRect(this.mobs[m].x * scale, this.mobs[m].y * scale, this.mobs[m].w * scale, this.mobs[m].h * scale);
+      this.mobs[m].draw(ctx);
     }
   }
 
@@ -446,7 +447,7 @@ export class Game {
    * @returns {Mob}
    */
   spawnMob(ctx, type = null) {
-    const MAX_ENEMIES = 20;
+    const MAX_ENEMIES = 10;
     if (this.mobs.length >= MAX_ENEMIES) return;
 
     switch (type) {
@@ -455,13 +456,27 @@ export class Game {
           x: randomInt(0, ctx.canvas.origW - 32),
           y: -32,
           w: 32,
-          h: 32,
+          h: 48,
           yVector: 0.5,
+          sprite: new Sprite({
+            asset: this.images.get('hombre'),
+            animations: {
+              hombre: [[0, 0, 32, 48]],
+              walk_down: [[32, 0, 32, 48], [64, 0, 32, 48]],
+            },
+          }),
         });
-        this.mobs.push(mob);
+        mob.sprite.animation = 'hombre';
+
+        cycleEvent(() => {
+          mob.sprite.animation = 'walk_down';
+          mob.sprite.frame = (mob.sprite.frame) ? 0 : 1;
+        }, 250);
         break;
     }
 
+    this.mobs.push(mob);
+    sortBy('y', this.mobs);
     return mob;
   }
 
@@ -504,5 +519,9 @@ export class Game {
     }
 
     return projectile;
+  }
+
+  damageWall() {
+
   }
 }

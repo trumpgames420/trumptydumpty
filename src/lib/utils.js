@@ -81,12 +81,12 @@ export const canvasFit = (ctx) => {
 
 /**
  * Spawn a repeating TimedEvent.
+ * @param {function} event - event to fire after delay
+ * @param {number} delay - initial delay before event fires
+ * @returns {TimedEvent}
  */
-export const cycleEvent = (event, delay) => {
-  return new TimedEvent(event, {
-    delay: delay,
-    repeat: true,
-  });
+export const cycleEvent = (event = ()=>{}, delay = 0) => {
+  return new TimedEvent(event, { delay: delay, repeat: true });
 }
 
 /**
@@ -156,4 +156,32 @@ export const randomImage = (width = 50, height = 50) => {
  */
 export const randomInt = (min, max) => {
   return Math.floor(Math.random() * (max - min + 1) + min);
+}
+
+/**
+ * Sort an array of objects by a given key.
+ * @param {string} key
+ * @param {array} arr
+ * @returns {array}
+ */
+export const sortBy = (key, arr = []) => {
+  arr.sort(function compare(a,b) {
+    if (a[key] < b[key])
+      return -1;
+    if (a[key] > b[key])
+      return 1;
+    return 0;
+  });
+
+  return arr;
+}
+
+/**
+ * Spawn a normal TimedEvent.
+ * @param {function} event - event to fire after delay
+ * @param {number} delay - initial delay before event fires
+ * @returns {TimedEvent}
+ */
+export const timedEvent = (event = ()=>{}, delay = 0) => {
+  return new TimedEvent(event, { delay: delay });
 }
